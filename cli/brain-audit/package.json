@@ -1,0 +1,40 @@
+{
+	"name": "@caspee/brain-audit",
+	"version": "0.3.0",
+	"description": "Audit a folder of Markdown or text (a company brain) on your own machine; only numbers and an encrypted report reach Caspee.",
+	"author": "OneType P.S.A.",
+	"license": "SEE LICENSE IN LICENSE",
+	"type": "module",
+	"bin": {
+		"brain-audit": "dist/brain-audit.mjs"
+	},
+	"files": [
+		"dist/brain-audit.mjs",
+		"README.md",
+		"assets/",
+		"LICENSE",
+		"THIRD-PARTY-NOTICES.md"
+	],
+	"engines": {
+		"node": ">=20"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/caspee-ai/brain-audit.git",
+		"directory": "cli/brain-audit"
+	},
+	"homepage": "https://audit.caspee.ai",
+	"bugs": {
+		"url": "https://github.com/caspee-ai/brain-audit/issues"
+	},
+	"keywords": [
+		"audit",
+		"markdown",
+		"knowledge-base",
+		"mcp"
+	],
+	"scripts": {
+		"build": "node build.mjs",
+		"prepublishOnly": "node build.mjs"
+	}
+}

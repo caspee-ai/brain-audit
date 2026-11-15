@@ -1,0 +1,28 @@
+{
+	"name": "brain-audit-mirror",
+	"private": true,
+	"description": "Source of @caspee/brain-audit, the Caspee brain audit CLI. The package itself is cli/brain-audit/.",
+	"license": "SEE LICENSE IN LICENSE",
+	"type": "module",
+	"engines": {
+		"node": ">=20"
+	},
+	"scripts": {
+		"build": "node cli/brain-audit/build.mjs",
+		"check": "tsc --noEmit -p .",
+		"test": "node --test --test-reporter=spec test/mirror.test.mjs"
+	},
+	"devDependencies": {
+		"@types/node": "24.13.3",
+		"esbuild": "0.28.1",
+		"graphology": "0.26.0",
+		"graphology-communities-louvain": "2.0.2",
+		"graphology-indices": "0.17.0",
+		"graphology-types": "0.24.8",
+		"graphology-utils": "2.5.2",
+		"mnemonist": "0.39.8",
+		"obliterator": "2.0.5",
+		"pandemonium": "2.4.1",
+		"typescript": "6.0.3"
+	}
+}

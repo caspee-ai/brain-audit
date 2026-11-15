@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400" viewBox="0 0 1200 400" role="img" aria-labelledby="t d">
+  <title id="t">How the audit flows</title>
+  <desc id="d">Your agent runs the CLI on your machine. The CLI downloads the audit's method, reads your folder locally, and uploads only a plain summary of numbers and a sealed report. You open the report through a private link whose key never reaches the server.</desc>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#3d2a00"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="400" rx="20" fill="#fffdf3" stroke="#eadfb8" stroke-width="2"/>
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" fill="#3d2a00">
+    <!-- Your machine -->
+    <rect x="32" y="32" width="520" height="336" rx="16" fill="#ffffff" stroke="#3d2a00" stroke-width="2" stroke-dasharray="7 6"/>
+    <text x="56" y="68" font-size="18" font-weight="700" letter-spacing="1.5">YOUR MACHINE</text>
+    <rect x="56" y="96" width="210" height="96" rx="12" fill="#fff6cc" stroke="#d9b000"/>
+    <text x="161" y="136" font-size="20" font-weight="700" text-anchor="middle">Your brain</text>
+    <text x="161" y="164" font-size="15" text-anchor="middle" fill-opacity="0.75">Markdown / text folder</text>
+    <rect x="318" y="96" width="210" height="96" rx="12" fill="#fff6cc" stroke="#d9b000"/>
+    <text x="423" y="136" font-size="20" font-weight="700" text-anchor="middle">Your AI agent</text>
+    <text x="423" y="164" font-size="15" text-anchor="middle" fill-opacity="0.75">Claude Code · Codex · Cursor</text>
+    <text x="423" y="184" font-size="12" text-anchor="middle" fill-opacity="0.65">its AI provider sees what it reads</text>
+    <rect x="56" y="232" width="472" height="112" rx="12" fill="#f5c400"/>
+    <text x="292" y="274" font-size="22" font-weight="700" text-anchor="middle">@caspee/brain-audit</text>
+    <text x="292" y="304" font-size="15" text-anchor="middle">reads the folder · measures structure · seals the report</text>
+    <text x="292" y="326" font-size="15" text-anchor="middle">with AES-256-GCM under a key made here</text>
+    <path d="M161 192 V228" stroke="#3d2a00" stroke-width="2" marker-end="url(#a)"/>
+    <text x="172" y="216" font-size="13" fill-opacity="0.7">read locally</text>
+    <path d="M423 192 V228" stroke="#3d2a00" stroke-width="2" marker-end="url(#a)"/>
+    <text x="434" y="216" font-size="13" fill-opacity="0.7">runs + grades</text>
+
+    <!-- Server -->
+    <rect x="680" y="64" width="232" height="272" rx="16" fill="#ffffff" stroke="#3d2a00" stroke-width="2"/>
+    <text x="796" y="104" font-size="18" font-weight="700" text-anchor="middle">audit.caspee.ai</text>
+    <text x="796" y="140" font-size="14" text-anchor="middle" fill-opacity="0.75">MCP: tells your agent</text>
+    <text x="796" y="160" font-size="14" text-anchor="middle" fill-opacity="0.75">each step</text>
+    <text x="796" y="200" font-size="14" text-anchor="middle" fill-opacity="0.75">stores numbers and</text>
+    <text x="796" y="220" font-size="14" text-anchor="middle" fill-opacity="0.75">a report it cannot open,</text>
+    <text x="796" y="240" font-size="14" text-anchor="middle" fill-opacity="0.75">and your optional answers</text>
+    <text x="796" y="280" font-size="14" text-anchor="middle" font-weight="700">no content,</text>
+    <text x="796" y="300" font-size="14" text-anchor="middle" font-weight="700">no readable names</text>
+
+    <path d="M676 150 H560" stroke="#3d2a00" stroke-width="2" marker-end="url(#a)"/>
+    <text x="618" y="140" font-size="13" text-anchor="middle">method</text>
+    <path d="M532 288 H676" stroke="#3d2a00" stroke-width="2" marker-end="url(#a)"/>
+    <text x="604" y="276" font-size="13" text-anchor="middle">numbers +</text>
+    <text x="604" y="310" font-size="13" text-anchor="middle">sealed report</text>
+
+    <!-- You -->
+    <rect x="976" y="112" width="192" height="176" rx="16" fill="#3d2a00"/>
+    <text x="1072" y="160" font-size="20" font-weight="700" text-anchor="middle" fill="#f5c400">Your report</text>
+    <text x="1072" y="192" font-size="14" text-anchor="middle" fill="#fff6cc">private link</text>
+    <text x="1072" y="230" font-size="15" text-anchor="middle" fill="#fff6cc" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">…/r/&lt;id&gt;#k=key</text>
+    <text x="1072" y="262" font-size="13" text-anchor="middle" fill="#fff6cc" fill-opacity="0.8">key never uploaded</text>
+    <path d="M916 200 H970" stroke="#3d2a00" stroke-width="2" marker-end="url(#a)"/>
+  </g>
+</svg>

@@ -1,0 +1,61 @@
+name: Publish
+
+# Publishes cli/brain-audit/ to npm as @caspee/brain-audit when tag `v<semver>` is pushed (the
+# tag must equal the package version), with provenance, through npm trusted publishing (OIDC):
+# no NPM_TOKEN exists or is needed.
+#
+# npmjs.com → @caspee/brain-audit → Settings → Trusted publishing → GitHub Actions:
+# organization `caspee-ai`, repository `brain-audit`, workflow filename `publish.yml`, environment
+# `npm`. The job runs in this repository's environment `npm`, which has required reviewers: a
+# pushed tag waits for one of them to approve before anything is published.
+#
+# Actions are pinned by commit, their release tag in a comment.
+
+on:
+  push:
+    tags: ['v*']
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+
+      # Trusted publishing needs Node 22.14 or later and npm 11.5.1 or later.
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      - run: npm install --global npm@11.6.2
+
+      - name: Tag matches the package version
+        run: |
+          want="v$(node -p "require('./cli/brain-audit/package.json').version")"
+          if [ "$GITHUB_REF_NAME" != "$want" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match $want."
+            exit 1
+          fi
+
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - run: npm run check
+
+      - run: npm run build
+
+      # Checks the bundle just built (cli/brain-audit/dist) is the released one.
+      - run: npm test
+
+      - run: npm publish --provenance --access public
+        working-directory: cli/brain-audit

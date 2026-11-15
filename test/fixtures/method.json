@@ -1,0 +1,533 @@
+{
+	"method_version": "0.0.1-fixture",
+	"catalog": {
+		"catalog_version": 1,
+		"groups": [
+			"basics",
+			"extras",
+			"module"
+		],
+		"forms": [
+			"sheet",
+			"roll"
+		],
+		"tiers": [
+			"always",
+			"when_present",
+			"by_type"
+		],
+		"sensitivities": [
+			"open",
+			"closed"
+		],
+		"elements": [
+			{
+				"applies_when": "When the notes show it.",
+				"atom_types": [
+					"gizmo"
+				],
+				"proposed_atom_types": [],
+				"form": "sheet",
+				"forms": [
+					"sheet"
+				],
+				"completeness": "Every one named.",
+				"usually_in": [
+					"the drawer"
+				],
+				"apps": [],
+				"sensitivity": "open",
+				"never": [],
+				"questions": [
+					"What is it?"
+				],
+				"listings": [
+					"all widgets"
+				],
+				"action_questions": [],
+				"id": "1-widgets",
+				"number": 1,
+				"name": "Widgets",
+				"group": "basics",
+				"tier": "always",
+				"question": "Which widgets exist?",
+				"applies_to": {
+					"company": "always",
+					"person": "when_present"
+				}
+			},
+			{
+				"applies_when": "When the notes show it.",
+				"atom_types": [
+					"doohickey"
+				],
+				"proposed_atom_types": [],
+				"form": "roll",
+				"forms": [
+					"roll",
+					"sheet"
+				],
+				"completeness": "Every one named.",
+				"usually_in": [
+					"the drawer"
+				],
+				"apps": [],
+				"sensitivity": "open",
+				"never": [],
+				"questions": [
+					"What is it?"
+				],
+				"listings": [],
+				"action_questions": [
+					"Order a sprocket."
+				],
+				"id": "2-sprockets",
+				"number": 2,
+				"name": "Sprockets",
+				"group": "extras",
+				"tier": "when_present",
+				"question": "How are sprockets made?",
+				"expected_metrics": [
+					"sprocket_count"
+				]
+			}
+		],
+		"modules": [
+			{
+				"id": "gadgetry",
+				"name": "Gadgetry",
+				"evidence": [
+					"gadget invoices"
+				],
+				"apps": [
+					"fakeapp"
+				],
+				"activates": [
+					"2-sprockets"
+				],
+				"elements": [
+					{
+						"applies_when": "When the notes show it.",
+						"atom_types": [
+							"gizmo"
+						],
+						"proposed_atom_types": [],
+						"form": "sheet",
+						"forms": [
+							"sheet"
+						],
+						"completeness": "Every one named.",
+						"usually_in": [
+							"the drawer"
+						],
+						"apps": [],
+						"sensitivity": "closed",
+						"never": [],
+						"questions": [
+							"What is it?"
+						],
+						"listings": [],
+						"action_questions": [],
+						"id": "gadgetry-gears",
+						"number": 0,
+						"name": "Gears",
+						"group": "module",
+						"tier": "by_type",
+						"question": "Which gears turn?"
+					}
+				]
+			}
+		],
+		"company_types": {
+			"plain": {
+				"subject": "company",
+				"module": null
+			},
+			"gadgetry": {
+				"subject": "company",
+				"module": "gadgetry"
+			},
+			"solo": {
+				"subject": "person",
+				"module": null
+			},
+			"tech": {
+				"subject": "company",
+				"module": "gadgetry"
+			}
+		},
+		"category_apps": {
+			"ledger_apps": [
+				"fakeapp",
+				"otherapp"
+			]
+		}
+	},
+	"mapping": {
+		"1-widgets": {
+			"folders": [
+				"widget",
+				"parts"
+			],
+			"kinds": [
+				"widget"
+			]
+		},
+		"2-sprockets": {
+			"folders": [
+				"sprocket"
+			],
+			"kinds": [
+				"sprocket"
+			]
+		}
+	},
+	"rubric": {
+		"rubric_version": 1,
+		"grades_version": 1,
+		"read_limit": 2,
+		"rationale_max_chars": 100,
+		"brain_words": {
+			"company": "a team",
+			"person": "a person"
+		},
+		"instructions": [
+			"Grade {brain} notes; read at most {read_limit} files."
+		],
+		"applies": {
+			"yes": "Applies.",
+			"no": "Does not apply.",
+			"unsure": "Cannot tell."
+		},
+		"depth": {
+			"0": "None.",
+			"1": "Thin.",
+			"2": "Answers.",
+			"3": "Answers, sourced."
+		},
+		"grades_schema": {
+			"type": "object"
+		}
+	},
+	"weights": {
+		"structural": {
+			"links": 25,
+			"structure": 25,
+			"metadata": 25,
+			"dating": 25,
+			"expected_share": 0.5,
+			"min_peers": 4
+		},
+		"merit": {
+			"always": 2,
+			"when_present": 1,
+			"by_type": 1,
+			"module": 1,
+			"covered_level": 2,
+			"max_level": 3,
+			"level3_share": 0.5
+		},
+		"total": {
+			"structural": 0.5,
+			"merit": 0.5
+		}
+	},
+	"kit": {
+		"contract_version": "0.0.0-fixture",
+		"core_required": [
+			"id",
+			"kind"
+		],
+		"atom_types": [
+			"gizmo",
+			"doohickey"
+		],
+		"page_shapes": {
+			"gizmo": {
+				"version": 1,
+				"sections": [
+					"Summary",
+					"Proof"
+				],
+				"now_cap": 4,
+				"required": [
+					"name"
+				]
+			},
+			"doohickey": {
+				"version": 1,
+				"sections": [
+					"Proof"
+				],
+				"now_cap": null,
+				"required": []
+			}
+		},
+		"page_dirs": [
+			"gizmos/",
+			"doohickeys/"
+		],
+		"entity_types": {
+			"types": [
+				"gizmo",
+				"doohickey",
+				"thing"
+			],
+			"page_types": [
+				"gizmo"
+			],
+			"subtypes": [
+				"inside",
+				"outside"
+			],
+			"relationships": [
+				"friend",
+				"foe"
+			]
+		}
+	},
+	"conventions": {
+		"declared_types": [
+			{
+				"role": "procedure",
+				"shape": "recipe",
+				"types": [
+					"howdo"
+				]
+			}
+		],
+		"kit_page_types": [
+			"overview-sheet"
+		],
+		"page_kinds": [
+			"widget"
+		],
+		"evidence_kinds": [
+			"memo"
+		],
+		"kind_keys": [
+			"kind"
+		],
+		"kind_ignore": [
+			"hush"
+		],
+		"event_source_keys": [
+			"origin_app"
+		],
+		"event_date_keys": [
+			"happened"
+		],
+		"generic_date_keys": [
+			"day"
+		],
+		"content_date_keys": [
+			"touched"
+		],
+		"capture_date_keys": [
+			"grabbed"
+		],
+		"mail_keys": {
+			"from": [
+				"sender"
+			],
+			"to": [
+				"receiver"
+			],
+			"date": [
+				"day"
+			]
+		},
+		"source_value_roles": {
+			"fakeapp": "record",
+			"otherapp": "document"
+		},
+		"convention_stems": [
+			"house-rules"
+		],
+		"procedure_stem_suffixes": [
+			"howdo"
+		],
+		"procedure_folders": [
+			"howdos"
+		],
+		"clip_url_keys": [
+			"link"
+		],
+		"clip_date_keys": [
+			"grabbed"
+		],
+		"root_note_files": [
+			"notes.md"
+		],
+		"root_setting_files": [
+			"settings.yml"
+		],
+		"glossary_stems": [
+			"words"
+		],
+		"kit_tooling_folders": [
+			"_scratch"
+		],
+		"person_folders": [
+			"folks"
+		],
+		"template_folders": [
+			"blanks"
+		],
+		"claim_map_suffix": ".proof.json",
+		"ledger_suffix": ".tally",
+		"skill_file": "howdo.md",
+		"kit_dialect_paths": [
+			{
+				"path": "clippings/",
+				"role": "evidence",
+				"shape": "capture"
+			},
+			{
+				"path": "asked.md",
+				"role": "setting",
+				"shape": "setting"
+			}
+		],
+		"kind_table": [
+			{
+				"kinds": [
+					"widget",
+					"widgets"
+				],
+				"type": "gizmo",
+				"set": {
+					"flavour": "plain"
+				}
+			}
+		],
+		"as_written_types": [
+			"doohickey"
+		],
+		"kit_registry_types": {
+			"thingy": {
+				"type": "gizmo"
+			}
+		},
+		"row_type_coercions": {
+			"doohickey": [
+				"gizmo"
+			]
+		},
+		"kit_folders": [
+			"gizmos",
+			"doohickeys"
+		],
+		"kit_marker_files": [
+			"inventory.yml"
+		],
+		"sidecar_files": [
+			"settings.yml"
+		],
+		"dialect_keys": [
+			"mood"
+		],
+		"status_words": {
+			"draft": [
+				"sketch"
+			],
+			"superseded": [
+				"old"
+			],
+			"current": [
+				"fresh"
+			]
+		},
+		"access_words": {
+			"everyone": [
+				"open"
+			],
+			"members": [
+				"crew"
+			],
+			"restricted": [
+				"shut"
+			]
+		},
+		"owner_keys_default": [
+			"keeper"
+		],
+		"relation_field_defaults": {
+			"pals": "friends"
+		},
+		"citation_patterns_default": [
+			{
+				"pattern": "(see: …)",
+				"why": "a made-up proof marker"
+			}
+		],
+		"as_of_suffixes": [
+			"seen"
+		],
+		"platform_keys": [
+			"kind"
+		],
+		"procedure_home_folders": [
+			"howdos"
+		],
+		"reserved_homes": [
+			{
+				"prefix": "folks/",
+				"type": "gizmo"
+			}
+		],
+		"system_folders": [
+			"machines"
+		],
+		"organization_folders": [
+			"outfits"
+		],
+		"organization_parents": [
+			"trade"
+		],
+		"decision_folders": [
+			"rulings"
+		],
+		"team_folders": [
+			"crew"
+		],
+		"team_relationships": [
+			"crew"
+		],
+		"kit_organization_types": [
+			"ally"
+		],
+		"decision_kinds": [
+			"ruling"
+		],
+		"group_kinds": [
+			"crew"
+		],
+		"me_folder": "self",
+		"self_stems": [
+			"whoami"
+		],
+		"self_stems_anywhere": [
+			"its-me"
+		],
+		"goal_stems": [
+			"aims"
+		],
+		"person_keys": [
+			"handle"
+		],
+		"name_particles": [
+			"zu"
+		],
+		"owner_keys": [
+			"keeper"
+		],
+		"url_source_keys": [
+			"link"
+		],
+		"mail_header_keys": [
+			"sender"
+		]
+	},
+	"content_hash": "sha256:ee36f57a9cec8a84e5ff94b7fe280d32c45ba81dea59ade16cb94628a28b969a"
+}

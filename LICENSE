@@ -1,0 +1,52 @@
+Caspee Brain Audit CLI Licence
+
+Copyright (c) 2026 OneType P.S.A. All rights reserved.
+
+The licensor is OneType P.S.A., Aleja Jana Pawła II 68/19, 00-170 Warsaw,
+Poland, KRS 0001224271 ("the Licensor"), the provider of Caspee by Unabyss.
+
+This licence covers the software "@caspee/brain-audit" (the command-line program, its
+bundled file and the source code published with it, together "the Software").
+
+1. Use. You may install and run the Software, without charge, to audit content that you own
+   or are allowed to audit, for yourself or for the organisation you work for. You may read
+   the source code to check what the Software does, and you may download or clone it and build
+   it, unchanged, to check that it matches the published package, and run that build under
+   this clause. Nothing in this licence limits what Article 75(2) of the Polish Copyright Act
+   allows a lawful user.
+
+2. Restrictions. You may not:
+   a. modify, adapt, translate or create derivative works of the Software;
+   b. copy, publish, distribute, sublicense, sell, rent or otherwise make the Software, or any
+      part of it, available to others, except by pointing them to the official source
+      (the npm package @caspee/brain-audit or the repository github.com/caspee-ai/brain-audit),
+      and except an internal cache or mirror of the unchanged package within your
+      organisation.
+      This licence does not limit the rights that GitHub's Terms of Service give to users of
+      a public repository, such as viewing and forking it on GitHub;
+   c. use the Software, or any part of it, to build, train, improve or offer a product or
+      service that audits, scores, builds or hosts knowledge bases for other parties;
+   d. remove or change this licence or any copyright notice.
+
+3. Third-party code. Parts of the Software are open-source packages under their own licences
+   (for example graphology, under the MIT licence). Those parts remain under their own terms,
+   and nothing in this licence limits them.
+
+4. No warranty. The Software is provided "as is", without warranty of any kind, express or
+   implied, including the warranties of merchantability, fitness for a particular purpose and
+   non-infringement.
+
+5. No liability. To the fullest extent the law allows, the Licensor is not liable for any claim,
+   damage or other loss, of any kind, arising from the Software or its use.
+
+   Nothing in clauses 4 and 5 limits the rights that a consumer, or a sole trader who has a
+   consumer's protection, has under mandatory law.
+
+6. Ending. This licence ends automatically if you break its terms. When it ends you must stop
+   using the Software and delete your copies.
+
+7. Law and courts. This licence is governed by Polish law. A dispute between businesses goes
+   to the courts of Warsaw. Nothing in this clause or in this licence limits the mandatory
+   rights a consumer has under the law of the country where they live.
+
+Any right not expressly granted here is reserved by the Licensor.
