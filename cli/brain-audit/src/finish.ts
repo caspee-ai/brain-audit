@@ -6,7 +6,9 @@
  * The key is made here and leaves the machine only inside the link the person opens: the
  * request carries the summary and the ciphertext, never the key. A retried `finish` with the
  * same grades sends the very same bytes (`upload.json`), so a lost response does not strand a
- * report behind a key nobody kept.
+ * report behind a key nobody kept. Once a request has gone out, a retry sends those bytes even
+ * when the grades were edited since: the server may hold them, and only that key
+ * opens them.
  *
  * Once the server has confirmed the upload, the work files that name the brain's contents go
  * (`state.json`, `merit-pack.json`, `method.json`) and `upload.json` keeps only the key, the
@@ -221,6 +223,8 @@ export type FinishResult = {
 	summary: PlainSummary;
 	/** The server already held this upload (a retry after a lost response). */
 	alreadyUploaded: boolean;
+	/** The grades file changed after a send that may have arrived: the first send went again. */
+	gradesNotSent?: boolean;
 };
 
 export async function finish(args: {
@@ -293,39 +297,50 @@ export async function finish(args: {
 			serverText(error instanceof Error ? error.message : String(error))
 		]);
 	}
-	const parsed = parseAgentGrades(method, gradesJson, pack, {
-		files: new Set(state.tree_paths)
-	});
-	if (!parsed.ok)
-		throw new FinishError(
-			'grades_invalid',
-			'The grades do not fit the pack; fix them and run finish again.',
-			// They quote the grades file and the method's element ids: cleaned like server text.
-			parsed.errors.map(serverText)
-		);
-
-	const { summary, sealedPack } = assembled({
-		workDir: args.workDir,
-		auditId: args.auditId,
-		cliVersion: args.cliVersion,
-		method,
-		state,
-		pack,
-		grades: parsed.grades
-	});
-
 	const gradesHash = await sha256Hex(JSON.stringify({ grades: gradesJson, pack: hash }));
-	let saved: PendingUpload | null = pending?.grades_hash === gradesHash ? pending : null;
+	// A request already went out with the saved upload, and its answer was lost: the server may
+	// hold that report, sealed under the saved key, and keeps the first one it takes. Resealing
+	// would make a key that cannot open it, so the very same bytes go again, whatever the grades
+	// file says now; edited grades are named and not sent (another report is another audit).
+	let saved: PendingUpload | null = pending?.sent ? pending : null;
+	const gradesNotSent = saved !== null && saved.grades_hash !== gradesHash;
+	if (gradesNotSent)
+		args.note?.(
+			'The grades changed after an earlier send that may have reached the server. That first send goes again unchanged, under the same key, and the report keeps its grades; the edited grades are not sent. For a report with other grades, start a new audit.'
+		);
 	if (!saved) {
-		const { key, envelope } = await sealPack(sealedPack, args.auditId);
-		saved = {
-			audit_id: args.auditId,
-			grades_hash: gradesHash,
-			key,
-			body: { summary, envelope: base64urlEncode(envelope) },
-			sent: false
-		};
-		writePrivate(uploadFile, JSON.stringify(saved), base);
+		const parsed = parseAgentGrades(method, gradesJson, pack, {
+			files: new Set(state.tree_paths)
+		});
+		if (!parsed.ok)
+			throw new FinishError(
+				'grades_invalid',
+				'The grades do not fit the pack; fix them and run finish again.',
+				// They quote the grades file and the method's element ids: cleaned like server text.
+				parsed.errors.map(serverText)
+			);
+		const { summary, sealedPack } = assembled({
+			workDir: args.workDir,
+			auditId: args.auditId,
+			cliVersion: args.cliVersion,
+			method,
+			state,
+			pack,
+			grades: parsed.grades
+		});
+		// Sealed before but never sent: the same grades reuse it, other grades seal afresh.
+		saved = pending?.grades_hash === gradesHash ? pending : null;
+		if (!saved) {
+			const { key, envelope } = await sealPack(sealedPack, args.auditId);
+			saved = {
+				audit_id: args.auditId,
+				grades_hash: gradesHash,
+				key,
+				body: { summary, envelope: base64urlEncode(envelope) },
+				sent: false
+			};
+			writePrivate(uploadFile, JSON.stringify(saved), base);
+		}
 	}
 	saved.audit_id = args.auditId;
 	// Everything the link needs is checked before anything is sent: once the server has answered,
@@ -369,7 +384,13 @@ export async function finish(args: {
 	writePrivate(linkFile, `${link}\n`, base);
 	// Confirmed (201, or 409 for this machine's own earlier send): only the link's parts stay.
 	settle(args.workDir, args.auditId, saved, saved.body.summary, base);
-	return { reportLink: link, linkFile, summary: saved.body.summary, alreadyUploaded };
+	return {
+		reportLink: link,
+		linkFile,
+		summary: saved.body.summary,
+		alreadyUploaded,
+		...(gradesNotSent ? { gradesNotSent: true } : {})
+	};
 }
 
 /**

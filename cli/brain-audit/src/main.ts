@@ -354,6 +354,7 @@ async function runFinish(
 		audit_id: auditId,
 		api_trusted: api.trusted,
 		already_uploaded: result.alreadyUploaded,
+		...(result.gradesNotSent ? { grades_not_sent: true } : {}),
 		structural_score: result.summary.structural_score,
 		merit_score: result.summary.merit_score,
 		total_score: result.summary.total_score,

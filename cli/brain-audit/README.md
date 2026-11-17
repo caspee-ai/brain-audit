@@ -155,7 +155,10 @@ It uploads both, then prints the report link and saves it to
 `~/.caspee/brain-audit/<audit_id>.url`. The key is the part of the link after `#k=`. The link
 is built on this machine, on the `--api` origin: the CLI takes no link, path or other host from
 the server's answer. Once the server has taken the report, running `finish` again sends nothing
-and makes no new key: it prints and saves the same link.
+and makes no new key: it prints and saves the same link. The same holds when the server's
+answer was lost: once a request has gone out, `finish` sends that first report again, unchanged
+and under the same key, even if the grades were edited since (it says so and returns
+`grades_not_sent: true`); a report with other grades needs a new audit.
 
 ## Privacy
 
