@@ -1,7 +1,7 @@
 {
-	"cli_version": "0.3.1",
-	"source_commit": "fdbef9f38ee313c3c95799df6ee69773bc1ef5cf",
-	"digest": "84e46cfc8136d5118903503e4768be7585b43fb1853e77422d7636ec46339e1c",
+	"cli_version": "0.4.0",
+	"source_commit": "acc0814a4f6367087b6d2179345c648892de9d28",
+	"digest": "828739a30a5872be8b1e500f8248a11949412e9771b960bd1916387966b8ba5d",
 	"sources": [
 		"cli/brain-audit/package.json",
 		"cli/brain-audit/src/api.ts",
@@ -14,6 +14,7 @@
 		"cli/brain-audit/src/pack.ts",
 		"cli/brain-audit/src/paths.ts",
 		"cli/brain-audit/src/server-text.ts",
+		"cli/brain-audit/src/setup.ts",
 		"cli/brain-audit/src/walk.ts",
 		"cli/brain-audit/src/work-files.ts",
 		"src/lib/brain-audit-core/audit/dates.ts",

@@ -51,7 +51,18 @@ vault, a Markdown export of a wiki.
 
 You need Claude Code, Codex or Cursor, Node.js 20 or newer, and an email address you can read.
 
-**1. Connect your agent** to the audit's MCP server, `https://audit.caspee.ai/mcp`:
+**One command.** In a terminal, from your brain folder:
+
+```sh
+npx -y @caspee/brain-audit@latest setup --start
+```
+
+It finds your agent, shows what it will change and asks first, connects the agent to the
+audit's MCP server, installs the audit's skill (Claude Code), instructions (Codex) or rule
+(Cursor), then opens the agent on the folder with the audit's opening prompt. Running it again
+changes nothing that is already in place. More in [`setup`](#setup).
+
+**Or by hand.** **1. Connect your agent** to the audit's MCP server, `https://audit.caspee.ai/mcp`:
 
 ```sh
 # Claude Code
@@ -86,6 +97,7 @@ and about Caspee; you can stop that at any time. See the
 
 | Step        | Where        | What crosses the network                                                    |
 | ----------- | ------------ | --------------------------------------------------------------------------- |
+| `setup`     | your machine | one download of the agent's setup file (`/agents/<agent>`); no brain data   |
 | `extract`   | your machine | one download of the audit's method; the audit id, its token, CLI version    |
 | feedback    | your agent   | only the answers you choose to give, and the agent's guess of your setup    |
 | grading     | your agent   | nothing from this CLI                                                       |
@@ -233,6 +245,7 @@ files that are not UTF-8.
 | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | `extract <brain_dir> --audit <id> [--api <base>] [--company-type <t>] [--read-limit <n>] [--work <dir>]` | JSON: method version, counts, structural score, merit pack path, element list, `api_trusted`, `note` |
 | `finish --audit <id> --grades <file> [--api <base>] [--work <dir>]`                                      | JSON: scores, `report_link`, `link_file`, `api_trusted`                                              |
+| `setup [brain_dir] [--agent <id>] [--start] [--yes]`                                                     | Lines for people: the changes it makes, then the prompt (or, with `--start`, the agent itself)       |
 | `clean (--audit <id> \| --all) [--work <dir>]`                                                           | JSON: `removed`, the paths it removed; `left`, entries it would not remove                           |
 | `--version`                                                                                              | the version                                                                                          |
 
@@ -252,6 +265,37 @@ audit's `next_step`, asks its question or records the skip, then runs `finish` a
 to retry), 1 anything else.
 
 `--read-limit` (files the agent may read per uncertain element) defaults to the method's own.
+
+## setup
+
+`setup` is the one command a person runs; the others are run by the agent. From the brain
+folder (or with the folder as its argument):
+
+```sh
+npx -y @caspee/brain-audit@latest setup --start
+```
+
+| Agent       | What setup does                                                                                                            | `--start` runs                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Claude Code | `claude mcp add --transport http --scope user brain-audit …/mcp`; writes `~/.claude/skills/brain-audit/SKILL.md`           | `claude "<prompt>"`                                                       |
+| Codex       | `codex mcp add brain-audit --url …/mcp`; appends the instructions to `~/.codex/AGENTS.md` once                             | `codex "<prompt>"`                                                        |
+| Cursor      | adds `brain-audit` to `~/.cursor/mcp.json`, other servers kept; writes `.cursor/rules/brain-audit.mdc` in the brain folder | `cursor-agent "<prompt>"`, when installed; otherwise it prints the prompt |
+
+- **Which agent:** the one installed (`claude`, `codex` on the PATH; `cursor`, `cursor-agent` or
+  `~/.cursor` for Cursor). With several it asks; `--agent claude-code|codex|cursor` names one.
+- **Asks first:** it lists every change and makes none until you say yes. `--yes` (`-y`) skips
+  the question; with no terminal to ask in, `--yes` is required. A change already in place is
+  shown as done and skipped.
+- **One request:** the skill, instructions or rule is the file audit.caspee.ai serves at
+  `/agents/<agent>` (the same file the website's setup downloads), checked before anything is
+  written. Setup reads nothing of the brain and sends nothing.
+- **The prompt** is `Run the Caspee brain audit on my brain folder: <folder>`; without
+  `--start`, setup prints it for you to say in a new session.
+
+Exit codes: 0 done (with `--start`, the agent's own code), 1 declined or an agent command
+failed, 2 usage (several agents and no terminal, no `--yes` without a terminal), 3 no agent
+found, not a folder or a Cursor config that is not JSON, 5 the server sent something that is
+not a setup file, 6 the server could not be reached.
 
 ## Source
 

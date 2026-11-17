@@ -5,18 +5,27 @@
  *   brain-audit extract <brain_dir> --audit <id> [--token <audit_token>] [--api <base>] [--company-type <t>] [--read-limit <n>] [--work <dir>]
  *   brain-audit finish --audit <id> --grades <file> [--token <audit_token>] [--api <base>] [--work <dir>]
  *   brain-audit clean (--audit <id> | --all) [--work <dir>]
+ *   brain-audit setup [brain_dir] [--agent claude-code|codex|cursor] [--start] [--yes]
  *   brain-audit --version
+ *
+ * `setup` is the one a person runs: it connects their agent to the audit MCP, installs the
+ * audit's skill (or instructions, or rule) and, with `--start`, opens the agent on the brain
+ * folder (`setup.ts`). It prints for people only.
  *
  * The audit token comes from `--token`, else the environment variable `BRAIN_AUDIT_TOKEN`, else
  * the first line of `--token-file <path>`; it is never printed.
  *
  * Each command prints one JSON object on stdout (for the agent) and short lines for people on
  * stderr. Two network calls only: `extract` downloads the audit's method pack from `--api` (and
- * sends only the audit id, its token and the CLI version), `finish` makes one upload to `--api`; no telemetry.
+ * sends only the audit id, its token and the CLI version), `finish` makes one upload to `--api`, and
+ * `setup` downloads one setup file from `--api` (`GET /agents/<agent>`); no telemetry.
  * `--api` must be a known audit server (`api.ts`) unless `--unsafe-api-host` is given.
  */
+import { execFile, spawn } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
+import { createInterface } from 'node:readline/promises';
 import { parseArgs } from 'node:util';
 import { isAuditId, isCompanyType } from '$lib/brain-audit-core/pack';
 import pkg from '../package.json';
@@ -25,6 +34,7 @@ import { ExtractError, engineVersion, extract } from './extract';
 import { FinishError, finish } from './finish';
 import { MethodPackError, methodFor } from './method';
 import { serverText } from './server-text';
+import { SetupError, setup, type SetupDeps } from './setup';
 import {
 	WORK_FILES,
 	baseDir,
@@ -58,7 +68,15 @@ const USAGE = `brain-audit ${CLI_VERSION}: audit a folder of Markdown or text on
                       [--company-type <type>] [--read-limit <n>] [--work <dir>]
   brain-audit finish --audit <audit_id> --grades <file> [--api <base>] [--work <dir>]
   brain-audit clean (--audit <audit_id> | --all) [--work <dir>]
+  brain-audit setup [brain_dir] [--agent claude-code|codex|cursor] [--start] [--yes]
   brain-audit --version
+
+setup connects your agent (Claude Code, Codex or Cursor; found on this machine, or named
+with --agent) to the audit MCP and installs the audit's skill, after showing every change
+and asking (--yes: without asking). --start then opens the agent in brain_dir (default:
+this folder) to run the audit. Run it from your brain folder:
+
+  npx -y @caspee/brain-audit@latest setup --start
 
 The audit token: set it in the environment as BRAIN_AUDIT_TOKEN (recommended), or give
 --token-file <path> (its first line), or --token <audit_token> (seen by other programs on
@@ -78,7 +96,7 @@ which is built on this machine.`;
 type Io = { out: (text: string) => void; err: (text: string) => void };
 
 /** What a command takes from outside its arguments: the environment and the CLI's folder. */
-type Context = { env: Readonly<Record<string, string | undefined>>; base: string };
+type Context = { env: Readonly<Record<string, string | undefined>>; base: string; home: string };
 
 /** The environment variable the audit token is read from when `--token` is not given. */
 export const TOKEN_ENV = 'BRAIN_AUDIT_TOKEN';
@@ -441,6 +459,92 @@ function runClean(argv: string[], io: Io, context: Context): number {
 	return EXIT.ok;
 }
 
+/** Quotes an argument for Windows' shell, which runs the agents' `.cmd` launchers. */
+const winQuote = (arg: string) =>
+	/^[\w./:=@-]+$/.test(arg) ? arg : `"${arg.replace(/"/g, '""')}"`;
+
+/** {@link SetupDeps} on this machine: its programs, its terminal and the network. */
+function machineDeps(io: Io, context: Context, fetchImpl?: typeof fetch): SetupDeps {
+	const platform = process.platform;
+	const shell = platform === 'win32';
+	const argsFor = (args: string[]) => (shell ? args.map(winQuote) : args);
+	const tty = process.stdin.isTTY === true;
+	return {
+		home: context.home,
+		cwd: process.cwd(),
+		env: context.env,
+		platform,
+		fetch: fetchImpl ?? fetch,
+		exec: (command, args) =>
+			new Promise((done) => {
+				execFile(command, argsFor(args), { shell, timeout: 60_000 }, (error, stdout, stderr) =>
+					done({
+						code: error ? (typeof error.code === 'number' ? error.code : 1) : 0,
+						stdout: String(stdout),
+						stderr: String(stderr || (error && !stderr ? error.message : ''))
+					})
+				);
+			}),
+		spawn: (command, args, cwd) =>
+			new Promise((done, fail) => {
+				const child = spawn(command, argsFor(args), { cwd, stdio: 'inherit', shell });
+				child.on('error', fail);
+				child.on('exit', (code) => done(code ?? 1));
+			}),
+		ask: tty
+			? async (question) => {
+					const rl = createInterface({ input: process.stdin, output: process.stderr });
+					try {
+						return await rl.question(question);
+					} finally {
+						rl.close();
+					}
+				}
+			: null,
+		say: io.err
+	};
+}
+
+/** `setup`: the agent set up for the audit, and with `--start` opened on the brain folder. */
+async function runSetup(
+	argv: string[],
+	io: Io,
+	context: Context,
+	deps?: SetupDeps,
+	fetchImpl?: typeof fetch
+): Promise<number> {
+	const { values, positionals } = parseArgs({
+		args: argv,
+		allowPositionals: true,
+		strict: true,
+		options: {
+			agent: { type: 'string' },
+			start: { type: 'boolean' },
+			yes: { type: 'boolean', short: 'y' },
+			api: { type: 'string' },
+			'unsafe-api-host': { type: 'boolean' }
+		}
+	});
+	if (positionals.length > 1) throw new UsageError('setup takes at most one <brain_dir>.');
+	const api = apiOf(values, io);
+	try {
+		return await setup(
+			{
+				brainDir: positionals[0],
+				agent: values.agent,
+				start: values.start === true,
+				yes: values.yes === true,
+				api: api.base
+			},
+			deps ?? machineDeps(io, context, fetchImpl)
+		);
+	} catch (error) {
+		if (!(error instanceof SetupError)) throw error;
+		io.err(`brain-audit setup: ${error.message}\n`);
+		return error.exit;
+	}
+}
+
 /** The exit code of each error code; an error code not listed exits {@link EXIT.input}. */
 const EXIT_OF: Readonly<Record<string, number>> = {
 	method_rejected: EXIT.rejected,
@@ -457,7 +561,8 @@ const exitOf = (code: string): number => EXIT_OF[code] ?? EXIT.input;
 
 /**
  * Runs the CLI; returns the exit code. `now`, `fetch`, `env` (default the process's) and `home`
- * (default the user's; the CLI's folder is `<home>/.caspee/brain-audit`) are for tests.
+ * (default the user's; the CLI's folder is `<home>/.caspee/brain-audit`) and `setup` (what `setup`
+ * runs and asks through) are for tests.
  */
 export async function run(
 	argv: string[],
@@ -470,12 +575,15 @@ export async function run(
 		fetch?: typeof fetch;
 		env?: Readonly<Record<string, string | undefined>>;
 		home?: string;
+		setup?: SetupDeps;
 	} = {}
 ): Promise<number> {
 	const [command, ...rest] = argv;
+	const home = options.home ?? homedir();
 	const context: Context = {
 		env: options.env ?? process.env,
-		base: options.home === undefined ? baseDir() : baseDir(options.home)
+		base: baseDir(home),
+		home
 	};
 	try {
 		if (command === '--version' || command === '-v' || command === 'version') {
@@ -490,6 +598,7 @@ export async function run(
 			return await runExtract(rest, io, context, options.now, options.fetch);
 		if (command === 'finish') return await runFinish(rest, io, context, options.fetch);
 		if (command === 'clean') return runClean(rest, io, context);
+		if (command === 'setup') return await runSetup(rest, io, context, options.setup, options.fetch);
 		throw new UsageError(`Unknown command ${JSON.stringify(command)}.`);
 	} catch (error) {
 		if (

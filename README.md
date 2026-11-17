@@ -32,6 +32,8 @@ Code, Codex and Cursor, and every command.
 
 ## Privacy, in short
 
+- `setup` downloads one file, the agent's setup file from the audit server, and changes your
+  agent's settings only after you say yes; it reads nothing of your brain.
 - `extract` downloads the audit's method (one request) and sends only the audit id, its token and the CLI version; then it reads the
   folder on your machine.
 - Before grading and the report link, the agent running the audit asks three short optional
