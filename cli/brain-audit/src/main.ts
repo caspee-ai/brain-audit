@@ -66,7 +66,7 @@ const USAGE = `brain-audit ${CLI_VERSION}: audit a folder of Markdown or text on
 
   brain-audit extract <brain_dir> --audit <audit_id> [--api <base>]
                       [--company-type <type>] [--read-limit <n>] [--work <dir>]
-  brain-audit finish --audit <audit_id> --grades <file> [--api <base>] [--work <dir>]
+  brain-audit finish --audit <audit_id> --grades <file> [--api <base>] [--work <dir>] [--no-open]
   brain-audit clean (--audit <audit_id> | --all) [--work <dir>]
   brain-audit setup [brain_dir] [--agent claude-code|codex|cursor] [--start] [--yes]
   brain-audit --version
@@ -96,7 +96,33 @@ which is built on this machine.`;
 type Io = { out: (text: string) => void; err: (text: string) => void };
 
 /** What a command takes from outside its arguments: the environment and the CLI's folder. */
-type Context = { env: Readonly<Record<string, string | undefined>>; base: string; home: string };
+type Context = {
+	env: Readonly<Record<string, string | undefined>>;
+	base: string;
+	home: string;
+	/** Opens a URL in the person's browser; false when it could not. Absent: nothing is opened. */
+	openUrl?: (url: string) => Promise<boolean>;
+};
+
+/**
+ * This machine's browser opener: `open` on macOS, the URL handler on Windows (no shell, so the
+ * link's `&` and `#` stay as they are), `xdg-open` elsewhere. Never throws; false on failure.
+ */
+export function machineOpenUrl(url: string): Promise<boolean> {
+	const [command, args] =
+		process.platform === 'darwin'
+			? ['open', [url]]
+			: process.platform === 'win32'
+				? ['rundll32', ['url.dll,FileProtocolHandler', url]]
+				: ['xdg-open', [url]];
+	return new Promise((done) => {
+		try {
+			execFile(command, args, { timeout: 15_000 }, (error) => done(!error));
+		} catch {
+			done(false);
+		}
+	});
+}
 
 /** The environment variable the audit token is read from when `--token` is not given. */
 export const TOKEN_ENV = 'BRAIN_AUDIT_TOKEN';
@@ -346,7 +372,8 @@ async function runFinish(
 			token: { type: 'string' },
 			api: { type: 'string' },
 			'unsafe-api-host': { type: 'boolean' },
-			work: { type: 'string' }
+			work: { type: 'string' },
+			'no-open': { type: 'boolean' }
 		}
 	});
 	if (positionals.length > 0) throw new UsageError('finish takes no positional argument.');
@@ -366,6 +393,12 @@ async function runFinish(
 		note: io.err,
 		base: context.base
 	});
+	// The owner's one sign-in: this machine opens the full report,
+	// signed in, in the browser. The link works once, for 30 minutes, and is never saved.
+	const opened =
+		result.signInLink && !values['no-open'] && context.openUrl
+			? await context.openUrl(result.signInLink)
+			: false;
 	emit(io, {
 		ok: true,
 		command: 'finish',
@@ -379,10 +412,18 @@ async function runFinish(
 		report_path: result.reportLink.split('#')[0],
 		report_link: result.reportLink,
 		link_file: result.linkFile,
-		note: `Give report_link to the user. Never send it, or the part after #, to any tool, MCP or server: it holds the key. The link was built on this machine. ${SERVER_LINES_NOTE}`
+		browser_opened: opened,
+		...(result.signInLink && !opened ? { sign_in_link: result.signInLink } : {}),
+		note: `${
+			opened
+				? 'The full report is open in the browser, signed in. '
+				: result.signInLink
+					? 'Open sign_in_link in the browser on this computer now (it signs in and opens the full report; it works once, for 30 minutes). '
+					: ''
+		}Give report_link to the user. Never send it, or the part after #, to any tool, MCP or server: it holds the key. The link was built on this machine. ${SERVER_LINES_NOTE}`
 	});
 	io.err(
-		`\nYour report: ${result.reportLink}\nSaved to ${result.linkFile}. The part after # is the key; only someone with this link can read the report.\n`
+		`${opened ? '\nYour full report is opening in your browser.' : ''}\nYour report: ${result.reportLink}\nSaved to ${result.linkFile}. The part after # is the key; only someone with this link can read the report.\n`
 	);
 	return EXIT.ok;
 }
@@ -576,6 +617,8 @@ export async function run(
 		env?: Readonly<Record<string, string | undefined>>;
 		home?: string;
 		setup?: SetupDeps;
+		/** Opens the sign-in link after `finish`; the binary passes `machineOpenUrl`. */
+		openUrl?: (url: string) => Promise<boolean>;
 	} = {}
 ): Promise<number> {
 	const [command, ...rest] = argv;
@@ -583,7 +626,8 @@ export async function run(
 	const context: Context = {
 		env: options.env ?? process.env,
 		base: baseDir(home),
-		home
+		home,
+		openUrl: options.openUrl
 	};
 	try {
 		if (command === '--version' || command === '-v' || command === 'version') {

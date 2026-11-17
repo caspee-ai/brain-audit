@@ -219,6 +219,8 @@ function assembled(args: {
 
 export type FinishResult = {
 	reportLink: string;
+	/** The one-use sign-in link, on the first confirmed upload only: opened, never saved. */
+	signInLink?: string;
 	linkFile: string;
 	summary: PlainSummary;
 	/** The server already held this upload (a retry after a lost response). */
@@ -352,8 +354,9 @@ export async function finish(args: {
 	writePrivate(uploadFile, JSON.stringify(saved), base);
 	let status: number;
 	let reportUrl: unknown;
+	let signInToken: string | null;
 	try {
-		({ status, reportUrl } = await upload({
+		({ status, reportUrl, signInToken } = await upload({
 			api: args.api.base,
 			auditId: args.auditId,
 			token: args.token,
@@ -386,6 +389,9 @@ export async function finish(args: {
 	settle(args.workDir, args.auditId, saved, saved.body.summary, base);
 	return {
 		reportLink: link,
+		...(signInToken
+			? { signInLink: signInLink(origin, args.auditId, signInToken, saved.key) }
+			: {}),
 		linkFile,
 		summary: saved.body.summary,
 		alreadyUploaded,
@@ -431,6 +437,22 @@ export const UPLOAD_MAX_BYTES = 25 * 1024 * 1024;
  * 4xx (401 token, 404 audit, 413 size, 422 `{ errors }`) throws `upload_rejected`, a 5xx, a
  * timeout or no answer `upload_failed`.
  */
+/** The server's one-use sign-in token, kept only when it is a plain URL-safe token. */
+function signInTokenOf(value: unknown): string | null {
+	return typeof value === 'string' && /^[A-Za-z0-9_-]{16,128}$/.test(value) ? value : null;
+}
+
+/**
+ * The owner's one sign-in link: the report's confirm page with the
+ * server's one-use token in the query and the key in the fragment, built here. It signs this
+ * browser in and opens the full report; it works once, for 30 minutes, and is never saved.
+ */
+export function signInLink(origin: string, auditId: string, token: string, key: string): string {
+	const full = reportLink(origin, auditId, key);
+	const [path, fragment] = [full.slice(0, full.indexOf('#')), full.slice(full.indexOf('#'))];
+	return `${path}/confirm?t=${encodeURIComponent(token)}${fragment}`;
+}
+
 async function upload(args: {
 	api: string;
 	auditId: string;
@@ -438,7 +460,7 @@ async function upload(args: {
 	body: UploadBody;
 	fetch: typeof fetch;
 	timeoutMs: number;
-}): Promise<{ status: number; reportUrl: unknown }> {
+}): Promise<{ status: number; reportUrl: unknown; signInToken: string | null }> {
 	const text = JSON.stringify(args.body);
 	if (new TextEncoder().encode(text).byteLength > UPLOAD_MAX_BYTES)
 		throw new FinishError(
@@ -469,11 +491,18 @@ async function upload(args: {
 			[error instanceof Error ? error.message : String(error)]
 		);
 	}
-	if (response.status === 409) return { status: 409, reportUrl: null };
+	if (response.status === 409) return { status: 409, reportUrl: null, signInToken: null };
 	if (response.ok) {
 		// Only its origin is ever used, and only once checked (`reportOriginOf`).
-		const body = (await response.json().catch(() => null)) as { report_url?: unknown } | null;
-		return { status: response.status, reportUrl: body?.report_url ?? null };
+		const body = (await response.json().catch(() => null)) as {
+			report_url?: unknown;
+			sign_in_token?: unknown;
+		} | null;
+		return {
+			status: response.status,
+			reportUrl: body?.report_url ?? null,
+			signInToken: signInTokenOf(body?.sign_in_token)
+		};
 	}
 	let detail: string[];
 	try {
