@@ -1,7 +1,7 @@
 {
-	"cli_version": "0.5.0",
-	"source_commit": "b395141e53296f8cc7a6139e5c3000e0fab903f0",
-	"digest": "2b8090ec30aceff91ea2d0c9ad140a5bf34c45fbaa279aef09337a9a4051db4d",
+	"cli_version": "0.6.0",
+	"source_commit": "0f0d5646edb8782ca14303ba7a062cdb0b079356",
+	"digest": "687a84c3df37bee643467f1c35dae4bcc089707e4f56e8d1027d274c72478165",
 	"sources": [
 		"cli/brain-audit/package.json",
 		"cli/brain-audit/src/api.ts",

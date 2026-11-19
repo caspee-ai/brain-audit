@@ -2,7 +2,7 @@ import type { JsonObject, Method, MethodCatalog, MethodRubric, MethodTier } from
 import type { CompanyType } from '../pack/vocab';
 import { elementChecklist } from './checklist';
 import { meritElementsFor, meritProfileOf } from './company-type';
-import { tierForSubject } from './score';
+import { layerForSubject, tierForSubject } from './score';
 import type { MeritSubject } from './types';
 
 export type MeritRubricElement = {
@@ -10,6 +10,7 @@ export type MeritRubricElement = {
 	name: string;
 	group: string;
 	tier: MethodTier;
+	layer: string;
 	question: string;
 	applies_when: string;
 	checklist: { id: string; text: string }[];
@@ -17,6 +18,7 @@ export type MeritRubricElement = {
 
 export type MeritCatalog = {
 	catalog_version: number;
+	layers: string[];
 	company_type: CompanyType;
 	subject: MeritSubject;
 	elements: MeritRubricElement[];
@@ -42,6 +44,7 @@ export function meritCatalogFor(catalog: MethodCatalog, companyType: CompanyType
 	const profile = meritProfileOf(catalog, companyType);
 	return {
 		catalog_version: catalog.catalog_version,
+		layers: [...catalog.layers],
 		company_type: profile.company_type,
 		subject: profile.subject,
 		elements: meritElementsFor(catalog, companyType).map((element) => ({
@@ -49,6 +52,7 @@ export function meritCatalogFor(catalog: MethodCatalog, companyType: CompanyType
 			name: element.name,
 			group: element.group,
 			tier: tierForSubject(element, profile.subject),
+			layer: layerForSubject(element, profile.subject),
 			question: element.question,
 			applies_when: element.applies_when,
 			checklist: elementChecklist(element).items.map((item) => ({ id: item.id, text: item.text }))

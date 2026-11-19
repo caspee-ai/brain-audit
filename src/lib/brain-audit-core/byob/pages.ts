@@ -774,7 +774,7 @@ function finishPage(
 			...(file.data ? { data: true as const } : {}),
 			...(file.data && file.body.trim() === '' ? { deferred: true as const } : {}),
 			type: 'topic',
-			title: stringOf(fm.title) ?? firstH1(draft.text) ?? stemTitle(draft),
+			title: ownTitle(stringOf(fm.title), draft) ?? firstH1(draft.text) ?? stemTitle(draft),
 			ownerHint: null,
 			frontmatter: draft.kind === 'skip' || draft.kind === 'notes' ? {} : fm,
 			body: draft.kind === 'glossary' || draft.kind === 'history' ? draft.text : '',
@@ -790,7 +790,8 @@ function finishPage(
 			? headerLinks(draft.frontmatter, draft.sourceDir, index, links)
 			: draft.frontmatter;
 	const h1 = firstH1(draft.text);
-	const fmTitle = stringOf(fm.title) ?? (draft.kind === 'skill' ? stringOf(fm.name) : null);
+	const fmTitle =
+		ownTitle(stringOf(fm.title), draft) ?? (draft.kind === 'skill' ? stringOf(fm.name) : null);
 	const body = rewriteLinks(draft.text, draft.sourceDir, index, links);
 
 	const kept: Record<string, unknown> = {};
@@ -1254,6 +1255,25 @@ function bodyAliases(text: string): string[] {
 function folderName(sourceDir: string): string | null {
 	const segments = sourceDir.split('/').filter(Boolean);
 	return segments.length > 0 ? segments[segments.length - 1]! : null;
+}
+
+function ownTitle(
+	title: string | null,
+	draft: Pick<Draft, 'stem' | 'tool' | 'sourceDir'>
+): string | null {
+	if (!title || !title.includes('/')) return title;
+	const parts = title.split('/').map((part) => part.trim());
+	const name = parts.at(-1);
+	const prefix = parts.slice(0, -1).map(brainSlug);
+	if (!name || prefix.length === 0 || prefix.some((part) => part === '')) return title;
+	const folders = [
+		...draft.sourceDir.split('/').filter(Boolean),
+		...namedPath(draft.stem, draft.tool ?? null).folders
+	].map(brainSlug);
+	const tail = folders.slice(-prefix.length);
+	return tail.length === prefix.length && tail.every((part, i) => part === prefix[i])
+		? name
+		: title;
 }
 
 function stemTitle(draft: Pick<Draft, 'stem' | 'tool'>): string {

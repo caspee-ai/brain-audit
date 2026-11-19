@@ -1,6 +1,6 @@
 {
 	"name": "@caspee/brain-audit",
-	"version": "0.5.0",
+	"version": "0.6.0",
 	"description": "Audit a folder of Markdown or text (a company brain) on your own machine; only numbers and an encrypted report reach Caspee.",
 	"author": "OneType P.S.A.",
 	"license": "SEE LICENSE IN LICENSE",

@@ -21,6 +21,13 @@ export function tierForSubject(
 	return element.applies_to?.[subject] ?? element.tier;
 }
 
+export function layerForSubject(
+	element: Pick<MethodElement, 'layer' | 'layer_applies_to'>,
+	subject: MeritSubject
+): string {
+	return element.layer_applies_to?.[subject] ?? element.layer;
+}
+
 export function pageIsSourced(page: MeritPageFacts): boolean {
 	if (page.citationsOut > 0) return true;
 	const unfilled = new Set(page.keysUnfilled.map((key) => key.toLowerCase()));

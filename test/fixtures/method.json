@@ -16,6 +16,10 @@
 			"when_present",
 			"by_type"
 		],
+		"layers": [
+			"shallow",
+			"deep"
+		],
 		"sensitivities": [
 			"open",
 			"closed"
@@ -31,7 +35,11 @@
 				"forms": [
 					"sheet"
 				],
-				"completeness": "Every one named.",
+				"layer": "shallow",
+				"completeness_by_layer": {
+					"shallow": "Every widget named.",
+					"deep": "Every widget a page."
+				},
 				"usually_in": [
 					"the drawer"
 				],
@@ -40,6 +48,21 @@
 				"never": [],
 				"questions": [
 					"What is it?"
+				],
+				"classes": [
+					{
+						"id": "widgets",
+						"kind": "gizmo",
+						"relationship": null,
+						"system_of_record": [],
+						"group_hints": [
+							{
+								"id": "colour",
+								"fact": "Their colour.",
+								"apps": []
+							}
+						]
+					}
 				],
 				"listings": [
 					"all widgets"
@@ -67,7 +90,11 @@
 					"roll",
 					"sheet"
 				],
-				"completeness": "Every one named.",
+				"layer": "deep",
+				"completeness_by_layer": {
+					"shallow": "Sprockets named.",
+					"deep": "How each is made."
+				},
 				"usually_in": [
 					"the drawer"
 				],
@@ -77,6 +104,7 @@
 				"questions": [
 					"What is it?"
 				],
+				"classes": [],
 				"listings": [],
 				"action_questions": [
 					"Order a sprocket."
@@ -89,7 +117,11 @@
 				"question": "How are sprockets made?",
 				"expected_metrics": [
 					"sprocket_count"
-				]
+				],
+				"layer_applies_to": {
+					"company": "deep",
+					"person": "shallow"
+				}
 			}
 		],
 		"modules": [
@@ -116,7 +148,10 @@
 						"forms": [
 							"sheet"
 						],
-						"completeness": "Every one named.",
+						"layer": "shallow",
+						"completeness_by_layer": {
+							"shallow": "Every one named."
+						},
 						"usually_in": [
 							"the drawer"
 						],
@@ -126,6 +161,7 @@
 						"questions": [
 							"What is it?"
 						],
+						"classes": [],
 						"listings": [],
 						"action_questions": [],
 						"id": "gadgetry-gears",
@@ -529,5 +565,5 @@
 			"sender"
 		]
 	},
-	"content_hash": "sha256:ee36f57a9cec8a84e5ff94b7fe280d32c45ba81dea59ade16cb94628a28b969a"
+	"content_hash": "sha256:6d3c659e8ad8bba0039f34e295109f2261e54bdd3de4798ae2d79d7a77163d58"
 }

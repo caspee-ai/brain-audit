@@ -288,6 +288,7 @@ export function toPackMerit(
 				name: element.name,
 				group: element.group,
 				tier: element.tier,
+				layer: element.layer,
 				applies: grade.applies,
 				level: row.level as MeritGrade['level'],
 				evidence: pages.map(index),

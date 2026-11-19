@@ -66,6 +66,7 @@ export type MeritGrade = {
 	name: string;
 	group: string;
 	tier: 'always' | 'when_present' | 'by_type';
+	layer?: string;
 	applies: 'yes' | 'no' | 'unsure';
 	level: 0 | 1 | 2 | 3 | null;
 	evidence: number[];
@@ -342,6 +343,7 @@ export function parseSealedPack(input: unknown, auditId?: string): PackResult {
 					isStr(g.name) &&
 					isStr(g.group) &&
 					['always', 'when_present', 'by_type'].includes(g.tier as string) &&
+					(g.layer === undefined || (isStr(g.layer) && (g.layer as string).length <= 40)) &&
 					['yes', 'no', 'unsure'].includes(g.applies as string) &&
 					(g.level === null || [0, 1, 2, 3].includes(g.level as number)) &&
 					Array.isArray(g.evidence) &&

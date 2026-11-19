@@ -124,5 +124,5 @@ scores, builds or hosts knowledge bases for other parties. Licensor: OneType P.S
 ## Links
 
 - Run the audit: <https://audit.caspee.ai>
-- Privacy policy: <https://audit.caspee.ai/privacy>
+- Privacy policy: <https://caspee.ai/privacy>
 - Caspee: <https://caspee.ai>

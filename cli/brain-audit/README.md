@@ -89,7 +89,7 @@ for each agent, plus a small skill or rule that keeps the agent on the audit's s
 
 The audit is free. In return, OneType P.S.A. (Caspee) contacts you by email about your result
 and about Caspee; you can stop that at any time. See the
-[privacy policy](https://audit.caspee.ai/privacy).
+[privacy policy](https://caspee.ai/privacy).
 
 ## How it works
 
@@ -188,9 +188,17 @@ and under the same key, even if the grades were edited since (it says so and ret
   not send the part after `#` to a server. To open the report, a person needs the full link and
   must confirm an email it was shared with (yours or one you invited); keep the link like a
   password.
-- **Network**: `extract` downloads the audit's method (one request to `--api`,
+- **Network**: `setup` downloads the agent's setup file (one request,
+  `GET <api>/agents/<agent>`) and sends no brain data; `extract` downloads the audit's method (one request to `--api`,
   `GET <api>/api/audits/<audit_id>/method`) and sends only the audit id, its token and the CLI version; `finish` makes one upload,
-  `PUT <api>/api/audits/<audit_id>`. No telemetry, no update check.
+  `PUT <api>/api/audits/<audit_id>`. No telemetry, no update check. Running it with
+  `npx …@latest` asks the npm registry for the newest version first: that request is npm's,
+  not this CLI's.
+- **Your agent's settings**: only `setup` changes them, only after you say yes (or pass
+  `--yes`), and only the entries listed under [`setup`](#setup). To undo them, remove the
+  `brain-audit` MCP server from your agent (`claude mcp remove --scope user brain-audit`,
+  `codex mcp remove brain-audit`, or its entry in `~/.cursor/mcp.json`) and delete the skill,
+  rule or the audit's part of `~/.codex/AGENTS.md`.
 - **Server text**: error lines the audit server sends, and the text of the method it serves
   (element names, the method version and hash `extract` prints, a method that does not parse),
   are cleaned of control characters, escape sequences, bidirectional and invisible characters
@@ -317,5 +325,5 @@ open-source packages it contains (graphology and its helpers, MIT) keep their ow
 ## Links
 
 - Run the audit: <https://audit.caspee.ai>
-- Privacy policy: <https://audit.caspee.ai/privacy>
+- Privacy policy: <https://caspee.ai/privacy>
 - Caspee: <https://caspee.ai>

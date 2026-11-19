@@ -5,6 +5,7 @@ import type {
 	MethodCatalog,
 	MethodConventions,
 	MethodElement,
+	MethodElementClass,
 	MethodKit,
 	MethodModule,
 	MethodRubric,
@@ -161,18 +162,29 @@ const element: Reader<MethodElement> = shape<MethodElement>(
 		proposed_atom_types: strings,
 		form: nonEmpty,
 		forms: strings,
-		completeness: str,
+		layer: nonEmpty,
+		layer_applies_to: shape({ company: nonEmpty, person: nonEmpty }),
+		completeness_by_layer: record(nonEmpty),
 		usually_in: strings,
 		apps: strings,
 		sensitivity: nonEmpty,
 		never: strings,
 		questions: strings,
+		classes: list(
+			shape<MethodElementClass>({
+				id: nonEmpty,
+				kind: nonEmpty,
+				relationship: nullable(nonEmpty),
+				system_of_record: strings,
+				group_hints: list(shape({ id: nonEmpty, fact: nonEmpty, apps: strings }))
+			})
+		),
 		listings: strings,
 		action_questions: strings,
 		expected_metrics: strings,
 		notes: str
 	},
-	['applies_to', 'expected_metrics', 'notes']
+	['applies_to', 'layer_applies_to', 'expected_metrics', 'notes']
 );
 
 const catalog: Reader<MethodCatalog> = shape<MethodCatalog>({
@@ -180,6 +192,7 @@ const catalog: Reader<MethodCatalog> = shape<MethodCatalog>({
 	groups: strings,
 	forms: strings,
 	tiers: list(tier),
+	layers: list(nonEmpty),
 	sensitivities: strings,
 	elements: list(element),
 	modules: list(
@@ -360,6 +373,18 @@ function checkReferences(m: Method): void {
 			if (!c.forms.includes(form)) fail(`${p}.forms`, `unknown form ${form}`);
 		if (!c.sensitivities.includes(e.sensitivity))
 			fail(`${p}.sensitivity`, `unknown sensitivity ${e.sensitivity}`);
+		for (const layer of [e.layer, ...Object.values(e.layer_applies_to ?? {})])
+			if (!c.layers.includes(layer)) fail(`${p}.layer`, `unknown layer ${layer}`);
+		for (const layer of Object.keys(e.completeness_by_layer))
+			if (!c.layers.includes(layer))
+				fail(`${p}.completeness_by_layer.${layer}`, `unknown layer ${layer}`);
+		if (!(e.layer in e.completeness_by_layer))
+			fail(`${p}.completeness_by_layer`, `holds no text at the element's layer ${e.layer}`);
+		const classIds = new Set<string>();
+		e.classes.forEach((cls, k) => {
+			if (classIds.has(cls.id)) fail(`${p}.classes[${k}].id`, `duplicate class ${cls.id}`);
+			classIds.add(cls.id);
+		});
 	}
 	const core = new Set(c.elements.map((e) => e.id));
 	const modules = new Set<string>();

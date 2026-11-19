@@ -2,6 +2,14 @@ export type MethodTier = 'always' | 'when_present' | 'by_type';
 
 export type MethodSubject = 'company' | 'person';
 
+export type MethodElementClass = {
+	id: string;
+	kind: string;
+	relationship: string | null;
+	system_of_record: string[];
+	group_hints: { id: string; fact: string; apps: string[] }[];
+};
+
 export type MethodElement = {
 	id: string;
 	number: number;
@@ -15,12 +23,15 @@ export type MethodElement = {
 	proposed_atom_types: string[];
 	form: string;
 	forms: string[];
-	completeness: string;
+	layer: string;
+	layer_applies_to?: { company: string; person: string };
+	completeness_by_layer: Record<string, string>;
 	usually_in: string[];
 	apps: string[];
 	sensitivity: string;
 	never: string[];
 	questions: string[];
+	classes: MethodElementClass[];
 	listings: string[];
 	action_questions: string[];
 	expected_metrics?: string[];
@@ -43,6 +54,7 @@ export type MethodCatalog = {
 	groups: string[];
 	forms: string[];
 	tiers: MethodTier[];
+	layers: string[];
 	sensitivities: string[];
 	elements: MethodElement[];
 	modules: MethodModule[];
